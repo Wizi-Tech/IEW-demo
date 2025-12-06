@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 class HotelCard extends StatelessWidget {
   final String name;
   final String price;
-
   final String distance;
   final int rating;
+  final String? imageUrl; // keep here
 
   const HotelCard({
     super.key,
     required this.name,
     required this.price,
-
     required this.distance,
     required this.rating,
+    this.imageUrl,
   });
 
   @override
@@ -29,24 +29,33 @@ class HotelCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image Placeholder
+          // IMAGE
           Container(
             height: 150,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(8),
+              color: Colors.grey.shade200,
+              image: imageUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(imageUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
-            child: Center(
-              child: Text(
-                'Image',
-                style: TextStyle(color: Colors.grey.shade500),
-              ),
-            ),
+            child: imageUrl == null
+                ? Center(
+                    child: Text(
+                      "No Image",
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  )
+                : null,
           ),
+
           const SizedBox(height: 12),
-          
-          // Title and Rating
+
+          // NAME + RATING
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -55,9 +64,8 @@ class HotelCard extends StatelessWidget {
                   name,
                   style: const TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Row(
@@ -65,36 +73,29 @@ class HotelCard extends StatelessWidget {
                   return Icon(
                     Icons.star,
                     size: 18,
-                    color: index < rating ? const Color(0xFF1C274C) : Colors.grey.shade300, 
-                    // Using a dark blue/black color for stars as seen in image
+                    color: index < rating
+                        ? const Color(0xFF1C274C)
+                        : Colors.grey.shade300,
                   );
                 }),
-              ),
+              )
             ],
           ),
-          const SizedBox(height: 8),
-          
-          // Price
+
+          const SizedBox(height: 6),
+
           Text(
             price,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black87,
-            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
 
-          
-          // Distance
           Text(
             distance,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
           ),
+
           const SizedBox(height: 16),
-          
-          // Select Button
+
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
@@ -107,13 +108,7 @@ class HotelCard extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              child: const Text(
-                'Select',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+              child: const Text("Select"),
             ),
           ),
         ],

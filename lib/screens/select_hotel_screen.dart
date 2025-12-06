@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/hotel_card.dart';
 import '../models/hotel.dart';
+import 'add_hotel_screen.dart';
 
 class SelectHotelScreen extends StatefulWidget {
   const SelectHotelScreen({super.key});
@@ -228,11 +229,24 @@ class _SelectHotelScreenState extends State<SelectHotelScreen> {
                             price: hotel.price,
                             distance: hotel.distance,
                             rating: hotel.rating,
+                            imageUrl: hotel.imageUrl,
                           );
                         },
                       ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddHotelScreen()),
+          );
+          if (result == true) {
+            _fetchHotels();
+          }
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
