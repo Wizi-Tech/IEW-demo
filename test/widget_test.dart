@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:hotel_app/main.dart';
 import 'package:hotel_app/screens/select_hotel_screen.dart';
 import 'package:hotel_app/widgets/hotel_card.dart';
