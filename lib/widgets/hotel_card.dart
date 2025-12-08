@@ -5,7 +5,11 @@ class HotelCard extends StatelessWidget {
   final String price;
   final String distance;
   final int rating;
-  final String? imageUrl; // keep here
+  final String? imageUrl;
+  final String country;
+  final String city;
+  final String address;
+  final int capacity;
 
   const HotelCard({
     super.key,
@@ -14,6 +18,10 @@ class HotelCard extends StatelessWidget {
     required this.distance,
     required this.rating,
     this.imageUrl,
+    required this.country,
+    required this.city,
+    required this.address,
+    required this.capacity,
   });
 
   @override
@@ -29,7 +37,9 @@ class HotelCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // IMAGE
+          // ----------------------
+          // HOTEL IMAGE
+          // ----------------------
           Container(
             height: 150,
             width: double.infinity,
@@ -52,10 +62,10 @@ class HotelCard extends StatelessWidget {
                   )
                 : null,
           ),
-
           const SizedBox(height: 12),
-
+          // ----------------------
           // NAME + RATING
+          // ----------------------
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -78,24 +88,54 @@ class HotelCard extends StatelessWidget {
                         : Colors.grey.shade300,
                   );
                 }),
-              )
+              ),
             ],
           ),
-
           const SizedBox(height: 6),
-
+          // ----------------------
+          // PRICE
+          // ----------------------
           Text(
             price,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-
+          // ----------------------
+          // DISTANCE
+          // ----------------------
           Text(
             distance,
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
           ),
-
+          const SizedBox(height: 6),
+          // ----------------------
+          // LOCATION DETAILS (Updated Order)
+          // ----------------------
+          Text(
+            address, // 1. Address
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+          ),
+          Text(
+            city, // 2. City
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+          ),
+          Text(
+            country, // 3. Country
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+          ),
+          Text(
+            "Capacity: $capacity",
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+          ),
           const SizedBox(height: 16),
-
+          // ----------------------
+          // SELECT BUTTON
+          // ----------------------
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(

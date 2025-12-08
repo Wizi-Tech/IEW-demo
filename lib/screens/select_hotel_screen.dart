@@ -28,20 +28,17 @@ class _SelectHotelScreenState extends State<SelectHotelScreen> {
   Future<void> _fetchHotels() async {
     try {
       final response = await Supabase.instance.client.from('Hotel').select();
-      final data = response as List<dynamic>;
 
       setState(() {
-        _hotels = data.map((json) => Hotel.fromJson(json)).toList();
+        _hotels =
+            (response as List).map((json) => Hotel.fromJson(json)).toList();
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error fetching hotels: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      debugPrint("Error: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading hotels: $e')),
+          SnackBar(content: Text("Error loading hotels: $e")),
         );
       }
     }
@@ -57,17 +54,13 @@ class _SelectHotelScreenState extends State<SelectHotelScreen> {
   }
 
   Future<void> _selectDate(BuildContext context, bool isCheckIn) async {
-    final DateTime now = DateTime.now();
-    final DateTime firstDate = now;
-    final DateTime lastDate = DateTime(2030);
-
-    final DateTime? picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
       initialDate: isCheckIn
-          ? (_checkIn ?? now)
-          : (_checkOut ?? _checkIn?.add(const Duration(days: 1)) ?? now),
-      firstDate: isCheckIn ? firstDate : (_checkIn ?? firstDate),
-      lastDate: lastDate,
+          ? (_checkIn ?? DateTime.now())
+          : (_checkOut ?? DateTime.now().add(const Duration(days: 1))),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
     );
 
     if (picked != null) {
@@ -84,13 +77,9 @@ class _SelectHotelScreenState extends State<SelectHotelScreen> {
     }
   }
 
-  // ---------------------------------------------------------
-  // ---------------- DATE FILTER BOX ------------------------
-  // ---------------------------------------------------------
-  Widget _buildDateFilter(BuildContext context, String label,
-      {bool isActive = false, VoidCallback? onClear}) {
+  Widget _buildDateBox(String label, bool isActive, VoidCallback? clearFn) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
       decoration: BoxDecoration(
         border: Border.all(
           color: isActive ? Colors.black : Colors.grey.shade300,
@@ -99,41 +88,29 @@ class _SelectHotelScreenState extends State<SelectHotelScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.calendar_today_outlined,
-            size: 18,
-            color: isActive ? Colors.black : Colors.grey.shade600,
-          ),
+          Icon(Icons.calendar_today_outlined,
+              size: 18, color: isActive ? Colors.black : Colors.grey),
           const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: isActive ? Colors.black : Colors.grey.shade600,
-              fontSize: 14,
-              fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
-            ),
-          ),
-          if (isActive && onClear != null) ...[
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: onClear,
-              child: const Icon(
-                Icons.close,
-                size: 16,
-                color: Colors.black,
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isActive ? Colors.black : Colors.grey,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ],
+          ),
+          if (isActive)
+            GestureDetector(
+              onTap: clearFn,
+              child: const Icon(Icons.close, size: 16),
+            ),
         ],
       ),
     );
   }
 
-  // ---------------------------------------------------------
-  // ---------------- FILTER ICON BOX ------------------------
-  // ---------------------------------------------------------
   Widget _buildFilterIcon() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -141,11 +118,7 @@ class _SelectHotelScreenState extends State<SelectHotelScreen> {
         border: Border.all(color: Colors.black, width: 1.5),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Icon(
-        Icons.tune,
-        size: 20,
-        color: Colors.black,
-      ),
+      child: const Icon(Icons.tune, size: 20),
     );
   }
 
@@ -153,40 +126,29 @@ class _SelectHotelScreenState extends State<SelectHotelScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text("Select Hotel"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {},
+          onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Select Hotel'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_horiz_rounded),
-            onPressed: () {},
-          ),
-        ],
       ),
 
       body: Column(
         children: [
-          // ---------------- FILTERS ----------------
+          // DATE FILTERS
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Expanded(
                   child: GestureDetector(
                     onTap: () => _selectDate(context, true),
-                    child: _buildDateFilter(
-                      context,
+                    child: _buildDateBox(
                       _checkIn != null
                           ? DateFormat('dd MMM yyyy').format(_checkIn!)
-                          : 'Check-in',
-                      isActive: _checkIn != null,
-                      onClear: () {
-                        setState(() {
-                          _checkIn = null;
-                        });
-                      },
+                          : "Check-in",
+                      _checkIn != null,
+                      () => setState(() => _checkIn = null),
                     ),
                   ),
                 ),
@@ -194,17 +156,12 @@ class _SelectHotelScreenState extends State<SelectHotelScreen> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () => _selectDate(context, false),
-                    child: _buildDateFilter(
-                      context,
+                    child: _buildDateBox(
                       _checkOut != null
                           ? DateFormat('dd MMM yyyy').format(_checkOut!)
-                          : 'Check-out',
-                      isActive: _checkOut != null,
-                      onClear: () {
-                        setState(() {
-                          _checkOut = null;
-                        });
-                      },
+                          : "Check-out",
+                      _checkOut != null,
+                      () => setState(() => _checkOut = null),
                     ),
                   ),
                 ),
@@ -213,38 +170,42 @@ class _SelectHotelScreenState extends State<SelectHotelScreen> {
               ],
             ),
           ),
-          // ---------------- HOTEL LIST ----------------
+
+          // HOTEL LIST
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _filteredHotels.isEmpty
-                    ? const Center(child: Text('No hotels available for selected dates'))
+                    ? const Center(child: Text("No hotels available"))
                     : ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: _filteredHotels.length,
                         itemBuilder: (context, index) {
-                          final hotel = _filteredHotels[index];
+                          final h = _filteredHotels[index];
                           return HotelCard(
-                            name: hotel.name,
-                            price: hotel.price,
-                            distance: hotel.distance,
-                            rating: hotel.rating,
-                            imageUrl: hotel.imageUrl,
+                            name: h.name,
+                            price: h.price,
+                            distance: h.distance,
+                            rating: h.rating,
+                            imageUrl: h.imageUrl,
+                            country: h.country ?? "Unknown Country",
+                            city: h.city ?? "Unknown City",
+                            address: h.address ?? "No Address",
+                            capacity: h.capacity ?? 0,
                           );
                         },
                       ),
           ),
         ],
       ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await Navigator.push(
+          final added = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AddHotelScreen()),
+            MaterialPageRoute(builder: (_) => const AddHotelScreen()),
           );
-          if (result == true) {
-            _fetchHotels();
-          }
+          if (added == true) _fetchHotels();
         },
         child: const Icon(Icons.add),
       ),

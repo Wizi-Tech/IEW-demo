@@ -18,9 +18,10 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
   final _priceController = TextEditingController();
   final _distanceController = TextEditingController();
   final _ratingController = TextEditingController();
-  
-  DateTime? _availableStart;
-  DateTime? _availableEnd;
+  final _countryController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _capacityController = TextEditingController();
   
   XFile? _imageFile;
   bool _isLoading = false;
@@ -63,12 +64,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
   }
 
   Future<void> _saveHotel() async {
-    if (_availableStart == null || _availableEnd == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select availability dates')),
-      );
-      return;
-    }
+
 
     if (!_formKey.currentState!.validate()) return;
     if (_imageFile == null) {
@@ -91,9 +87,13 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
         'price': _priceController.text,
         'distance': _distanceController.text,
         'rating': int.parse(_ratingController.text),
-        'available_start': _availableStart!.toIso8601String(),
-        'available_end': _availableEnd!.toIso8601String(),
+        'available_start': DateTime.now().toIso8601String(),
+        'available_end': DateTime.now().add(const Duration(days: 365)).toIso8601String(),
         'image_url': imageUrl,
+        'country': _countryController.text,
+        'city': _cityController.text,
+        'address': _addressController.text,
+        'capacity': int.tryParse(_capacityController.text),
       });
 
       if (mounted) {
@@ -115,35 +115,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context, bool isStart) async {
-    final DateTime now = DateTime.now();
-    // Ensure firstDate is before or equal to initialDate by stripping time or using a past date
-    final DateTime firstDate = DateTime(now.year, now.month, now.day); 
-    
-    final DateTime initialDate = isStart 
-        ? (_availableStart ?? DateTime.now()) 
-        : (_availableEnd ?? DateTime.now().add(const Duration(days: 1)));
-    
-    // Ensure initialDate is not before firstDate (can happen if _availableStart was set to 'now' earlier)
-    final DateTime effectiveInitialDate = initialDate.isBefore(firstDate) ? firstDate : initialDate;
 
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: effectiveInitialDate,
-      firstDate: firstDate,
-      lastDate: DateTime(2030),
-    );
-
-    if (picked != null) {
-      setState(() {
-        if (isStart) {
-          _availableStart = picked;
-        } else {
-          _availableEnd = picked;
-        }
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -262,49 +234,50 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
                     ),
                     const SizedBox(height: 24),
                     
-                    // Date Selection
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Availability',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
+                    // Address
+                    _buildTextField(
+                      controller: _addressController,
+                      label: 'Address',
+                      icon: Icons.map_rounded,
+                      validator: (value) => value!.isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // City & Country
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _cityController,
+                            label: 'City',
+                            icon: Icons.location_city_rounded,
+                            validator: (value) => value!.isEmpty ? 'Required' : null,
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildDateSelector(
-                                  context,
-                                  label: 'From',
-                                  date: _availableStart,
-                                  onTap: () => _selectDate(context, true),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildDateSelector(
-                                  context,
-                                  label: 'To',
-                                  date: _availableEnd,
-                                  onTap: () => _selectDate(context, false),
-                                ),
-                              ),
-                            ],
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _countryController,
+                            label: 'Country',
+                            icon: Icons.public_rounded,
+                            validator: (value) => value!.isEmpty ? 'Required' : null,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Capacity
+                    _buildTextField(
+                      controller: _capacityController,
+                      label: 'Capacity',
+                      icon: Icons.people_rounded,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                       if (value == null || value.isEmpty) return 'Required';
+                       if (int.tryParse(value) == null) return 'Number';
+                       return null;
+                      },
                     ),
                     const SizedBox(height: 32),
                     
@@ -379,50 +352,5 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
     );
   }
 
-  Widget _buildDateSelector(
-    BuildContext context, {
-    required String label,
-    DateTime? date,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Icons.calendar_today_rounded, size: 16, color: Colors.blue.shade600),
-                const SizedBox(width: 8),
-                Text(
-                  date != null ? DateFormat('MMM dd, yyyy').format(date) : 'Select Date',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: date != null ? Colors.black87 : Colors.grey.shade400,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 }

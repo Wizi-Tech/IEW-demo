@@ -6,6 +6,11 @@ class Hotel {
   final DateTime availableStart;
   final DateTime availableEnd;
   final String? imageUrl;
+  final String? country;
+  final String? city;
+  final String? address;
+  final int? capacity;
+  final String? availability;
 
   Hotel({
     required this.name,
@@ -15,6 +20,11 @@ class Hotel {
     required this.availableStart,
     required this.availableEnd,
     this.imageUrl,
+    this.country,
+    this.city,
+    this.address,
+    this.capacity,
+    this.availability,
   });
 
   bool isAvailable(DateTime checkIn, DateTime checkOut) {
@@ -34,7 +44,12 @@ class Hotel {
       availableEnd: json['available_end'] != null 
           ? DateTime.tryParse(json['available_end'].toString()) ?? DateTime.now().add(const Duration(days: 365))
           : DateTime.now().add(const Duration(days: 365)),
-      imageUrl: json['image_url']?.toString(),
+       imageUrl: json['image_url']?.toString(),
+      country: json['country']?.toString(),
+      city: json['city']?.toString(),
+      address: json['address']?.toString(),
+      capacity: (json['capacity'] as num?)?.toInt(),
+      availability: json['availability']?.toString(),
     );
   }
 }
