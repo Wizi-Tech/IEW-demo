@@ -1,0 +1,9 @@
+[build]
+  publish = "build/web"
+  command = "flutter build web"
+
+[build.environment]
+  PUB_CACHE = "/opt/buildhome/.pub-cache"
+
+[[plugins]]
+package = "netlify-plugin-flutter"
